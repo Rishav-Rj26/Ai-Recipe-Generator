@@ -1,7 +1,7 @@
 
 
 -- Enable UUID extension
-CREATE EXTENSION IF NOT EXIST "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS recipe_ingredients (
     ingredient_name VARCHAR(255) NOT NULL,
     quantity DECIMAL(10, 2) NOT NULL,
     unit VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Recipe Nutrition Table
@@ -109,3 +109,36 @@ CREATE TABLE IF NOT EXISTS shopping_lists (
 );
 
 -- create indexes for performance optimization
+CREATE INDEX IF NOT EXISTS idx_pantry_user_id ON pantry_items(user_id);
+CREATE INDEX IF NOT EXISTS idx_pantry_category ON pantry_items(category);
+CREATE INDEX IF NOT EXISTS idx_pantry_expiry ON pantry_items(expiration_date);
+
+CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON recipes(user_id);
+CREATE INDEX IF NOT EXISTS idx_recipes_cuisine ON recipes(cuisine_type);
+
+CREATE INDEX IF NOT EXISTS idx_meal_plans_user_data ON meal_plans(user_id, start_date, end_date);
+
+CREATE INDEX IF NOT EXISTS idx_shopping_lists_user_id ON shopping_lists(user_id);
+
+--Function to update the updated_at timestamp on row modification
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers for each table to update the updated_at column
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON user_preferences FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_pantry_items_updated_at BEFORE UPDATE ON pantry_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_recipes_updated_at BEFORE UPDATE ON recipes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_meal_plans_updated_at BEFORE UPDATE ON meal_plans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_shopping_lists_updated_at BEFORE UPDATE ON shopping_lists FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
