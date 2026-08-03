@@ -1,5 +1,5 @@
 import db from '../config/db.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 class User {
     //create new user
@@ -60,7 +60,7 @@ class User {
     }
 
     //Verify user password
-    static async verifyPassword(plainPassword, hashedPassword) {
+    static async comparePassword(plainPassword, hashedPassword) {
         return await bcrypt.compare(plainPassword, hashedPassword);
     }
 

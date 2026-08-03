@@ -15,7 +15,7 @@ const generateToken = (user) => {
 // Register a new user
 export const register = async (req,res,next) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, name } = req.body;
 
         //Validation 
         if(!email || !password || !name){

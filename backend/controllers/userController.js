@@ -38,6 +38,21 @@ export const updateProfile = async (req, res, next) => {
     }   
 };
 
+export const updatePreferences = async (req, res, next) => {
+    try {
+        const preferences = req.body;
+        const userPreferences = await UserPreference.upsert(req.user.id, preferences);
+
+        res.json({
+            success: true,
+            message: 'Preferences updated successfully',
+            data: { preferences: userPreferences }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 //Change password
 
 export const changePassword = async (req, res, next) => {
