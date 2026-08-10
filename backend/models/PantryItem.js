@@ -62,13 +62,32 @@ class PantryItem {
             `SELECT * FROM pantry_items
             WHERE user_id = $1
             AND expiration_date IS NOT NULL
-            AND expiration_date <= CURRENT_DATE + INTERVAL '${days} days'
+            AND expiration_date <= CURRENT_DATE + $2::int * INTERVAL '1 day'
             AND expiration_date >= CURRENT_DATE
             ORDER BY expiration_date ASC`,
-            [userId]
+            [userId, days]
         );
 
         return result.rows;
+    }
+
+    // Get summary counts for a user's pantry.
+    static async getStats(userId) {
+        const result = await db.query(
+            `SELECT
+                COUNT(*)::int AS total_items,
+                COUNT(*) FILTER (WHERE is_running_low)::int AS running_low_items,
+                COUNT(*) FILTER (
+                    WHERE expiration_date BETWEEN CURRENT_DATE AND CURRENT_DATE + 7
+                )::int AS expiring_soon_items,
+                COUNT(*) FILTER (WHERE expiration_date < CURRENT_DATE)::int AS expired_items,
+                COUNT(DISTINCT category)::int AS category_count
+            FROM pantry_items
+            WHERE user_id = $1`,
+            [userId]
+        );
+
+        return result.rows[0];
     }
 
     //Get pantry item by ID

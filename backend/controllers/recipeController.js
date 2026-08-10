@@ -370,3 +370,22 @@ export const getPantrySuggestions = async(req,res,next)=>{
     }
 
 };
+
+// Alias used by the /:id route.
+export const getRecipeById = getRecipe;
+
+/**
+ * Get summary statistics for the authenticated user's recipes.
+ */
+export const getRecipeStats = async (req, res, next) => {
+    try {
+        const stats = await Recipe.getStats(req.user.id);
+
+        res.json({
+            success: true,
+            data: { stats }
+        });
+    } catch (error) {
+        next(error);
+    }
+};

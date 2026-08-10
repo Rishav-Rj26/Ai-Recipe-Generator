@@ -1,4 +1,4 @@
-const db = require("../config/db");
+import db from "../config/db.js";
 
 class Recipe {
     /**
@@ -164,6 +164,23 @@ class Recipe {
 
 
         return result.rows;
+    }
+
+    /**
+     * Get summary counts for a user's recipes.
+     */
+    static async getStats(userId) {
+        const result = await db.query(
+            `SELECT
+                COUNT(*)::int AS total_recipes,
+                COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days')::int
+                    AS recipes_created_this_week
+            FROM recipes
+            WHERE user_id = $1`,
+            [userId]
+        );
+
+        return result.rows[0];
     }
 
 

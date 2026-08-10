@@ -131,7 +131,10 @@ export const getExpiringItems = async(req,res,next)=>{
 
     try {
 
-        const days = req.query.days || 7;
+        const requestedDays = Number.parseInt(req.query.days, 10);
+        const days = Number.isInteger(requestedDays) && requestedDays >= 0
+            ? requestedDays
+            : 7;
 
 
         const items = await PantryItem.getExpiringSoon(
@@ -232,4 +235,20 @@ export const deletePantryItem = async(req,res,next)=>{
 
     }
 
+};
+
+/**
+ * Get pantry summary statistics.
+ */
+export const getPantryStats = async (req, res, next) => {
+    try {
+        const stats = await PantryItem.getStats(req.user.id);
+
+        res.json({
+            success: true,
+            data: { stats }
+        });
+    } catch (error) {
+        next(error);
+    }
 };
