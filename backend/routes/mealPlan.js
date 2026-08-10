@@ -6,4 +6,10 @@ import authMiddleware from '../middleware/auth.js';
 //All routes are protected
 router.use(authMiddleware);
 
-router.get('')
+router.get('/weekly', mealPlanController.getWeeklyMealPlan);
+router.get('/upcoming', mealPlanController.getUpcomingMeals);
+router.get('/stats', mealPlanController.getMealPlanStats);
+router.post('/:id', mealPlanController.addToMealPlan);
+router.delete('/:id', mealPlanController.deleteMealPlan);
+
+export default router;
