@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { ChefHat, UtensilsCrossed, Calendar, ShoppingCart, TrendingUp, Clock } from 'lucide-react';
-import { dummyStats, getRecentRecipes, getUpcomingMeals } from '../data/dummyData';
+import api from '../services/api';
 
 const Dashboard = () => {
     const [stats, setStats] = useState({
@@ -12,6 +12,7 @@ const Dashboard = () => {
     });
     const [recentRecipes, setRecentRecipes] = useState([]);
     const [upcomingMeals, setUpcomingMeals] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Load dummy data
