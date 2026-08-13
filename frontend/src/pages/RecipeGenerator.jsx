@@ -27,31 +27,31 @@ const RecipeGenerator = () => {
 
     // Load user preferences on component mount
     useEffect(() => {
-        const fetchUserPrefences = async () => {
-        try{
-            const response = await api.get('/users/profile');
-            const prefences = response.data.data.prefences;
+        const fetchUserPreferences = async () => {
+            try {
+                const response = await api.get('/users/profile');
+                const preferences = response.data.data.preferences;
 
-            if(prefences){
-                if(prefences.dietary_restrictions && prefences.dietary_restrictions.length > 0){
-                    setDietaryRestrictions(prefences.dietary_restrictions);
+                if (preferences?.dietary_restrictions?.length) {
+                    setDietaryRestrictions(preferences.dietary_restrictions);
                 }
 
-                if(prefences.preferred_cuisines && prefences.preferred_cuisines.length > 0){
-                    setCuisineType(prefences.preferred_cuisines[0]);
+                if (preferences?.preferred_cuisines?.length) {
+                    setCuisineType(preferences.preferred_cuisines[0]);
                 }
 
-                if(prefences.default_servings){
-                    setServings(prefences.default_servings);
+                if (preferences?.default_servings) {
+                    setServings(preferences.default_servings);
                 }
-
+            } catch (error) {
+                console.error('Failed to load user preferences:', error);
+            } finally {
                 setPreferencesLoaded(true);
             }
-        } catch(error){
-            console.error('Failed to load user prefences:', error);
-            setPreferencesLoaded(true);
-        }
-    };
+        };
+
+        fetchUserPreferences();
+    }, []);
 
     const addIngredient = () => {
         if (inputValue.trim() && !ingredients.includes(inputValue.trim())) {
@@ -72,7 +72,7 @@ const RecipeGenerator = () => {
         }
     };
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
         if (!usePantry && ingredients.length === 0) {
             toast.error('Please add at least one ingredient or use pantry items');
             return;
@@ -100,7 +100,7 @@ const RecipeGenerator = () => {
         }
     };
 
-    const handleSaveRecipe = () => {
+    const handleSaveRecipe = async () => {
         if (!generatedRecipe) return;
 
         setSaving(true);
@@ -111,7 +111,7 @@ const RecipeGenerator = () => {
                 cuisine_type: generatedRecipe.cuisineType,
                 difficulty: generatedRecipe.difficulty,
                 prep_time: generatedRecipe.prepTime,
-                cook_time: generatedRecipe.COOKING_TIMES,
+                cook_time: generatedRecipe.cookTime,
                 servings: generatedRecipe.servings,
                 instructions: generatedRecipe.instructions,
                 dietary_tags: generatedRecipe.dietaryTags || [],

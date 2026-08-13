@@ -61,12 +61,12 @@ const Pantry = () => {
         setFilteredItems(filtered);
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this item?')) return;
 
         try{
             await api.delete(`/pantry/${id}`);
-            setItems(items.filter(item => item.id !== id));
+            setItems(currentItems => currentItems.filter(item => item.id !== id));
             toast.success('Item deleted');
         }catch(error){
             toast.error("Failed to delete item");

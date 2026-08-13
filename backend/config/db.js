@@ -4,9 +4,15 @@ dotenv.config();
 
 import { Pool } from 'pg';
 
+const connectionUrl = process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : null;
+
+if (connectionUrl) {
+    connectionUrl.searchParams.set('sslmode', 'verify-full');
+}
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+    connectionString: connectionUrl?.toString(),
+    ssl: connectionUrl ? { rejectUnauthorized: true } : false
 });
 
 pool.on('connect', () => {

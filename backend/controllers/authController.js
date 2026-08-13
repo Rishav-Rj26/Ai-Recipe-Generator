@@ -42,7 +42,7 @@ export const register = async (req,res,next) => {
             dietary_restrictions: [],
             allergies: [],
             preferred_cuisines: [],
-            default_serving: 4,
+            default_servings: 4,
             measurement_unit: 'metric'
         });
 
@@ -88,7 +88,7 @@ export const login = async (req, res, next) => {
         }
 
         // Verify password
-        const isMatch = await User.comparePassword(password, user.password);
+        const isMatch = await User.comparePassword(password, user.password_hash);
         if(!isMatch){
             return res.status(401).json({
                 success: false,

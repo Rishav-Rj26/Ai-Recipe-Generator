@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS user_preferences (
     dietary_restrictions TEXT[] DEFAULT '{}',
     allergies TEXT[] DEFAULT '{}',
     preferred_cuisines TEXT[] DEFAULT '{}',
-    default_serving INT DEFAULT 4,
+    default_servings INT DEFAULT 4,
     measurement_unit VARCHAR(50) DEFAULT 'metric',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

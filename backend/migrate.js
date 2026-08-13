@@ -12,9 +12,15 @@ const __dirname = path.dirname(__filename);
 //Load environment variables from .env file
 dotenv.config();
 
+const connectionUrl = process.env.DATABASE_URL ? new URL(process.env.DATABASE_URL) : null;
+
+if (connectionUrl) {
+    connectionUrl.searchParams.set('sslmode', 'verify-full');
+}
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+    connectionString: connectionUrl?.toString(),
+    ssl: connectionUrl ? { rejectUnauthorized: true } : false
 });
 
 async function runMigration() {
