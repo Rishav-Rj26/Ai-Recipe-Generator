@@ -1,5 +1,3 @@
-
-
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -89,23 +87,26 @@ CREATE TABLE IF NOT EXISTS recipe_nutrition (
 CREATE TABLE IF NOT EXISTS meal_plans (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
+    recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE,
+    meal_date DATE NOT NULL,
+    meal_type VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, name)
+    UNIQUE(user_id, meal_date, meal_type)
 );
 
--- Shopping List Table
-CREATE TABLE IF NOT EXISTS shopping_lists (
+-- Shopping List Items Table
+CREATE TABLE IF NOT EXISTS shopping_list_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    items JSONB NOT NULL, -- Store items as JSON array
+    ingredient_name VARCHAR(255) NOT NULL,
+    quantity DECIMAL(10, 2),
+    unit VARCHAR(50),
+    category VARCHAR(100),
+    is_checked BOOLEAN DEFAULT FALSE,
+    from_meal_plan BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, name)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- create indexes for performance optimization
@@ -116,9 +117,9 @@ CREATE INDEX IF NOT EXISTS idx_pantry_expiry ON pantry_items(expiration_date);
 CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON recipes(user_id);
 CREATE INDEX IF NOT EXISTS idx_recipes_cuisine ON recipes(cuisine_type);
 
-CREATE INDEX IF NOT EXISTS idx_meal_plans_user_data ON meal_plans(user_id, start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_meal_plans_user_data ON meal_plans(user_id, meal_date);
 
-CREATE INDEX IF NOT EXISTS idx_shopping_lists_user_id ON shopping_lists(user_id);
+CREATE INDEX IF NOT EXISTS idx_shopping_list_items_user_id ON shopping_list_items(user_id);
 
 --Function to update the updated_at timestamp on row modification
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -130,15 +131,20 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for each table to update the updated_at column
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_user_preferences_updated_at ON user_preferences;
 CREATE TRIGGER update_user_preferences_updated_at BEFORE UPDATE ON user_preferences FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_pantry_items_updated_at ON pantry_items;
 CREATE TRIGGER update_pantry_items_updated_at BEFORE UPDATE ON pantry_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_recipes_updated_at ON recipes;
 CREATE TRIGGER update_recipes_updated_at BEFORE UPDATE ON recipes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_meal_plans_updated_at ON meal_plans;
 CREATE TRIGGER update_meal_plans_updated_at BEFORE UPDATE ON meal_plans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_shopping_lists_updated_at BEFORE UPDATE ON shopping_lists FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
+DROP TRIGGER IF EXISTS update_shopping_list_items_updated_at ON shopping_list_items;
+CREATE TRIGGER update_shopping_list_items_updated_at BEFORE UPDATE ON shopping_list_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

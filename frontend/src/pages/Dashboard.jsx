@@ -21,10 +21,10 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
         try{
             const [recipesRes, pantryRes, mealPlanRes, recentRes, upcomingRes] = await Promise.all([
-                api.get('/recipes/stats'),
+                api.get('/recipe/stats'),
                 api.get('/pantry/stats'),
                 api.get('/meal-plans/stats'),
-                api.get('/recipes/recent?limit=5'),
+                api.get('/recipe/recent?limit=5'),
                 api.get('/meal-plans/upcoming?limit=5'),
             ]);
 

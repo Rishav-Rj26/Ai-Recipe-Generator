@@ -389,3 +389,20 @@ export const getRecipeStats = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * Get recent recipes for the authenticated user.
+ */
+export const getRecentRecipes = async (req, res, next) => {
+    try {
+        const limit = parseInt(req.query.limit) || 5;
+        const recipes = await Recipe.getRecent(req.user.id, limit);
+
+        res.json({
+            success: true,
+            data: { recipes }
+        });
+    } catch (error) {
+        next(error);
+    }
+};

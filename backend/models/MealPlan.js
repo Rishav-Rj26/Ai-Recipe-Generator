@@ -164,21 +164,80 @@ class MealPlan {
     /**
      * Delete meal plan
      */
-    static async delete(id) {
-
+    static async delete(id, userId) {
         const result = await db.query(
-            `
-            DELETE FROM meal_plans
-
-            WHERE id=$1
-
-            RETURNING *
-            `,
-            [
-                id
-            ]
+            `DELETE FROM meal_plans
+            WHERE id = $1 AND user_id = $2
+            RETURNING *`,
+            [id, userId]
         );
 
+        return result.rows[0];
+    }
+
+    /**
+     * Get weekly meal plan
+     */
+    static async getWeeklyMealPlan(userId, startDate) {
+        const result = await db.query(
+            `SELECT
+                mp.*,
+                r.name AS recipe_name,
+                r.description,
+                r.image_url,
+                r.prep_time,
+                r.cook_time
+            FROM meal_plans mp
+            JOIN recipes r ON mp.recipe_id = r.id
+            WHERE mp.user_id = $1
+            AND mp.meal_date >= $2::date
+            AND mp.meal_date < $2::date + INTERVAL '7 days'
+            ORDER BY mp.meal_date ASC, mp.meal_type ASC`,
+            [userId, startDate]
+        );
+
+        return result.rows;
+    }
+
+    /**
+     * Get upcoming meals
+     */
+    static async getUpcoming(userId, limit = 5) {
+        const result = await db.query(
+            `SELECT
+                mp.*,
+                r.name AS recipe_name,
+                r.description,
+                r.image_url,
+                r.prep_time,
+                r.cook_time
+            FROM meal_plans mp
+            JOIN recipes r ON mp.recipe_id = r.id
+            WHERE mp.user_id = $1
+            AND mp.meal_date >= CURRENT_DATE
+            ORDER BY mp.meal_date ASC
+            LIMIT $2`,
+            [userId, limit]
+        );
+
+        return result.rows;
+    }
+
+    /**
+     * Get meal plan stats
+     */
+    static async getStats(userId) {
+        const result = await db.query(
+            `SELECT
+                COUNT(*)::int AS total_planned_meals,
+                COUNT(*) FILTER (
+                    WHERE meal_date >= CURRENT_DATE
+                    AND meal_date < CURRENT_DATE + INTERVAL '7 days'
+                )::int AS this_week_count
+            FROM meal_plans
+            WHERE user_id = $1`,
+            [userId]
+        );
 
         return result.rows[0];
     }

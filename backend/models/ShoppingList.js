@@ -226,30 +226,165 @@ class ShoppingList {
 
 
 
-    /**
-     * Delete shopping item
-     */
-    static async delete(id) {
-
-
+    static async delete(id, userId) {
         const result = await db.query(
-            `
-            DELETE FROM shopping_list_items
-
-            WHERE id=$1
-
-            RETURNING *
-            `,
-            [
-                id
-            ]
+            `DELETE FROM shopping_list_items
+            WHERE id = $1 AND user_id = $2
+            RETURNING *`,
+            [id, userId]
         );
 
-
         return result.rows[0];
-
     }
 
+    /**
+     * Create a shopping list item
+     */
+    static async create(userId, itemData) {
+        const { ingredient_name, quantity, unit, category } = itemData;
+
+        const result = await db.query(
+            `INSERT INTO shopping_list_items
+            (user_id, ingredient_name, quantity, unit, category, from_meal_plan, is_checked)
+            VALUES ($1, $2, $3, $4, $5, false, false)
+            RETURNING *`,
+            [userId, ingredient_name, quantity, unit, category || null]
+        );
+
+        return result.rows[0];
+    }
+
+    /**
+     * Find all shopping list items by user ID
+     */
+    static async findByUserId(userId) {
+        const result = await db.query(
+            `SELECT * FROM shopping_list_items
+            WHERE user_id = $1
+            ORDER BY created_at DESC`,
+            [userId]
+        );
+
+        return result.rows;
+    }
+
+    /**
+     * Get shopping list items grouped by category
+     */
+    static async getGroupedByCategory(userId) {
+        const result = await db.query(
+            `SELECT * FROM shopping_list_items
+            WHERE user_id = $1
+            ORDER BY category ASC, created_at DESC`,
+            [userId]
+        );
+
+        return result.rows;
+    }
+
+    /**
+     * Update a shopping list item
+     */
+    static async update(id, userId, updates) {
+        const { ingredient_name, quantity, unit, category } = updates;
+
+        const result = await db.query(
+            `UPDATE shopping_list_items
+            SET ingredient_name = COALESCE($1, ingredient_name),
+                quantity = COALESCE($2, quantity),
+                unit = COALESCE($3, unit),
+                category = COALESCE($4, category)
+            WHERE id = $5 AND user_id = $6
+            RETURNING *`,
+            [ingredient_name, quantity, unit, category, id, userId]
+        );
+
+        return result.rows[0];
+    }
+
+    /**
+     * Toggle checked status of a shopping list item
+     */
+    static async toggleChecked(id, userId) {
+        const result = await db.query(
+            `UPDATE shopping_list_items
+            SET is_checked = NOT is_checked
+            WHERE id = $1 AND user_id = $2
+            RETURNING *`,
+            [id, userId]
+        );
+
+        return result.rows[0];
+    }
+
+    /**
+     * Clear all checked items
+     */
+    static async clearChecked(userId) {
+        const result = await db.query(
+            `DELETE FROM shopping_list_items
+            WHERE user_id = $1 AND is_checked = true
+            RETURNING *`,
+            [userId]
+        );
+
+        return result.rows;
+    }
+
+    /**
+     * Clear all items
+     */
+    static async clearAll(userId) {
+        const result = await db.query(
+            `DELETE FROM shopping_list_items
+            WHERE user_id = $1
+            RETURNING *`,
+            [userId]
+        );
+
+        return result.rows;
+    }
+
+    /**
+     * Add checked items to pantry
+     */
+    static async addCheckedToPantry(userId) {
+        const client = await db.pool.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            const checkedItems = await client.query(
+                `SELECT * FROM shopping_list_items
+                WHERE user_id = $1 AND is_checked = true`,
+                [userId]
+            );
+
+            for (const item of checkedItems.rows) {
+                await client.query(
+                    `INSERT INTO pantry_items
+                    (user_id, name, quantity, unit, category)
+                    VALUES ($1, $2, $3, $4, $5)`,
+                    [userId, item.ingredient_name, item.quantity || 1, item.unit || 'pieces', item.category || 'Other']
+                );
+            }
+
+            await client.query(
+                `DELETE FROM shopping_list_items
+                WHERE user_id = $1 AND is_checked = true`,
+                [userId]
+            );
+
+            await client.query('COMMIT');
+
+            return checkedItems.rows;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
 
 }
 

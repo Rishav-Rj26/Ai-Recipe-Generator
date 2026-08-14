@@ -2,14 +2,14 @@ import MealPlan from '../models/MealPlan.js'
 
 //Add recipe to meal plan
 
-export const addToMealPlan = async (req, resizeBy, next) => {
+export const addToMealPlan = async (req, res, next) => {
     try {
         const mealPlan = await MealPlan.create(req.user.id, req.body);
 
         res.status(201).json({
             success: true,
             message: 'Recipe added to meal plan',
-            date: { mealPlan }
+            data: { mealPlan }
         });
     } catch (error) {
         next(error);
@@ -34,7 +34,7 @@ export const getWeeklyMealPlan = async (req, res, next) => {
 
         res.json({
             success: true,
-            date: { mealPlans }
+            data: { mealPlans }
         });
     } catch (error){
         next(error);

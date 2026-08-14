@@ -12,7 +12,7 @@ router.get('/suggestions', recipeController.getPantrySuggestions);
 
 //CRUD operations
 router.get('/', recipeController.getRecipes);
-router.get('/recent', recipeController.getRecipe);
+router.get('/recent', recipeController.getRecentRecipes);
 router.get('/stats', recipeController.getRecipeStats);
 router.get('/:id', recipeController.getRecipeById);
 router.post('/', recipeController.saveRecipe);

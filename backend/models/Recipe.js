@@ -67,10 +67,10 @@ class Recipe {
             // Insert ingredients
             for (const ingredient of ingredients) {
                 await client.query(
-                    `INSERT INTO ingredients
+                    `INSERT INTO recipe_ingredients
                     (
                         recipe_id,
-                        name,
+                        ingredient_name,
                         quantity,
                         unit
                     )
@@ -78,7 +78,7 @@ class Recipe {
                     ($1,$2,$3,$4)`,
                     [
                         recipe.id,
-                        ingredient.name,
+                        ingredient.ingredient_name || ingredient.name,
                         ingredient.quantity,
                         ingredient.unit
                     ]
@@ -87,7 +87,7 @@ class Recipe {
 
             // Insert nutrition
             await client.query(
-                `INSERT INTO nutrition
+                `INSERT INTO recipe_nutrition
                 (
                     recipe_id,
                     calories,
@@ -133,7 +133,7 @@ class Recipe {
                 r.*,
                 json_agg(
                     DISTINCT jsonb_build_object(
-                        'name', i.name,
+                        'name', i.ingredient_name,
                         'quantity', i.quantity,
                         'unit', i.unit
                     )
@@ -148,10 +148,10 @@ class Recipe {
 
             FROM recipes r
 
-            LEFT JOIN ingredients i
+            LEFT JOIN recipe_ingredients i
             ON r.id = i.recipe_id
 
-            LEFT JOIN nutrition n
+            LEFT JOIN recipe_nutrition n
             ON r.id = n.recipe_id
 
             WHERE r.user_id = $1
@@ -183,7 +183,20 @@ class Recipe {
         return result.rows[0];
     }
 
+    /**
+     * Get recent recipes for a user
+     */
+    static async getRecent(userId, limit = 5) {
+        const result = await db.query(
+            `SELECT * FROM recipes
+            WHERE user_id = $1
+            ORDER BY created_at DESC
+            LIMIT $2`,
+            [userId, limit]
+        );
 
+        return result.rows;
+    }
 
     /**
      * Get single recipe
@@ -195,7 +208,7 @@ class Recipe {
                 r.*,
                 json_agg(
                     jsonb_build_object(
-                        'name', i.name,
+                        'name', i.ingredient_name,
                         'quantity', i.quantity,
                         'unit', i.unit
                     )
@@ -210,10 +223,10 @@ class Recipe {
 
             FROM recipes r
 
-            LEFT JOIN ingredients i
+            LEFT JOIN recipe_ingredients i
             ON r.id=i.recipe_id
 
-            LEFT JOIN nutrition n
+            LEFT JOIN recipe_nutrition n
             ON r.id=n.recipe_id
 
             WHERE r.id=$1
