@@ -14,7 +14,7 @@ const MealPlanner = () => {
     const [recipes, setRecipes] = useState([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
 
     useEffect(() => {
         fetchMealPlan();

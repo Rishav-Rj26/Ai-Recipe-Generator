@@ -1,31 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { ChefHat, Home, UtensilsCrossed, Calendar, ShoppingCart, Settings, LogOut } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
 
 const Navbar = () => {
-    const { user, logout } = useAuth();
+    const { logout } = useAuth();
     const navigate = useNavigate();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
 
     const handleLogout = () => {
         logout();
         navigate('/login');
-        setIsDropdownOpen(false);
     };
-
-    //Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if(dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     return (
         <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">

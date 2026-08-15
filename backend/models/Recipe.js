@@ -201,7 +201,7 @@ class Recipe {
     /**
      * Get single recipe
      */
-    static async getById(recipeId) {
+    static async getById(recipeId, userId) {
 
         const result = await db.pool.query(
             `SELECT 
@@ -229,10 +229,10 @@ class Recipe {
             LEFT JOIN recipe_nutrition n
             ON r.id=n.recipe_id
 
-            WHERE r.id=$1
+            WHERE r.id=$1 AND r.user_id=$2
 
             GROUP BY r.id,n.id`,
-            [recipeId]
+            [recipeId, userId]
         );
 
 
@@ -244,7 +244,7 @@ class Recipe {
     /**
      * Update recipe
      */
-    static async update(recipeId, recipeData) {
+    static async update(recipeId, userId, recipeData) {
 
         const {
             name,
@@ -276,7 +276,7 @@ class Recipe {
             user_notes=$10,
             image_url=$11
 
-            WHERE id=$12
+            WHERE id=$12 AND user_id=$13
 
             RETURNING *`,
             [
@@ -291,7 +291,8 @@ class Recipe {
                 dietary_tags,
                 user_notes,
                 image_url,
-                recipeId
+                recipeId,
+                userId
             ]
         );
 
@@ -304,13 +305,13 @@ class Recipe {
     /**
      * Delete recipe
      */
-    static async delete(recipeId) {
+    static async delete(recipeId, userId) {
 
         const result = await db.pool.query(
             `DELETE FROM recipes
-            WHERE id=$1
+            WHERE id=$1 AND user_id=$2
             RETURNING *`,
-            [recipeId]
+            [recipeId, userId]
         );
 
 

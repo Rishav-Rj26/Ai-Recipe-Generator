@@ -14,7 +14,7 @@ const Pantry = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [expiringItems, setExpiringItems] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
 
     useEffect(() => {
         fetchPantryItems();
@@ -165,7 +165,7 @@ const Pantry = () => {
             {showAddModal && (
                 <AddItemModal
                     onClose={() => setShowAddModal(false)}
-                    onSuccess={(newItem) => {
+                    onSuccess={() => {
                         fetchPantryItems();
                         fetchExpiringItems();
                     }}

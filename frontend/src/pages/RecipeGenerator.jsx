@@ -23,7 +23,7 @@ const RecipeGenerator = () => {
     const [generating, setGenerating] = useState(false);
     const [generatedRecipe, setGeneratedRecipe] = useState(null);
     const [saving, setSaving] = useState(false);
-    const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+    const [, setPreferencesLoaded] = useState(false);
 
     // Load user preferences on component mount
     useEffect(() => {

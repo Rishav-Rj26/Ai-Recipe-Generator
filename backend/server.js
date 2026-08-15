@@ -27,8 +27,10 @@ app.get('/', (req,res) => {
 //API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/pantry', pantryRoutes);
 app.use('/api/recipe', recipeRoutes);
+app.use('/api/recipes', recipeRoutes);
 app.use('/api/meal-plans', mealPlanRoutes);
 app.use('/api/shopping-list', shoppingListRoutes);
 

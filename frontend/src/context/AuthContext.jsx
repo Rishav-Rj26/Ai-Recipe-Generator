@@ -1,30 +1,22 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState } from 'react';
 import api from '../services/api';
-
-const AuthContext = createContext(null);
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within AuthProvider');
-    }
-    return context;
-};
+import AuthContext from './auth';
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        //check if user is logged in 
+    const [user, setUser] = useState(() => {
         const token = localStorage.getItem('token');
         const savedUser = localStorage.getItem('user');
+        if (!token || !savedUser) return null;
 
-        if(token && savedUser){
-            setUser(JSON.parse(savedUser));
+        try {
+            return JSON.parse(savedUser);
+        } catch {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            return null;
         }
-        setLoading(false);
-    }, []);
+    });
+    const [loading] = useState(false);
 
     const login = async (email, password) => {
        try{

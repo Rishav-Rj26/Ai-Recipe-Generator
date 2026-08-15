@@ -198,9 +198,7 @@ export const getRecipe = async(req,res,next)=>{
     try {
 
 
-        const recipe = await Recipe.getById(
-            req.params.id
-        );
+        const recipe = await Recipe.getById(req.params.id, req.user.id);
 
 
         if(!recipe){
@@ -252,13 +250,11 @@ export const updateRecipe = async(req,res,next)=>{
     try {
 
 
-        const recipe = await Recipe.update(
+        const recipe = await Recipe.update(req.params.id, req.user.id, req.body);
 
-            req.params.id,
-
-            req.body
-
-        );
+        if (!recipe) {
+            return res.status(404).json({ success: false, message: 'Recipe not found' });
+        }
 
 
         res.json({
@@ -296,9 +292,11 @@ export const deleteRecipe = async(req,res,next)=>{
     try {
 
 
-        await Recipe.delete(
-            req.params.id
-        );
+        const recipe = await Recipe.delete(req.params.id, req.user.id);
+
+        if (!recipe) {
+            return res.status(404).json({ success: false, message: 'Recipe not found' });
+        }
 
 
         res.json({

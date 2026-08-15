@@ -11,7 +11,7 @@ const MyRecipes = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCuisine, setSelectedCuisine] = useState('All');
     const [selectedDifficulty, setSelectedDifficulty] = useState('All');
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
 
     const cuisines = ['All', 'Italian', 'Mexican', 'Indian', 'Chinese', 'Japanese', 'Thai', 'French', 'Mediterranean', 'American'];
     const difficulties = ['All', 'easy', 'medium', 'hard'];
