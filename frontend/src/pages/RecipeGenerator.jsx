@@ -338,7 +338,11 @@ const RecipeGenerator = () => {
                                         {generatedRecipe.ingredients?.map((ing, index) => (
                                             <li key={index} className="flex items-center gap-2 text-gray-700">
                                                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                                                {ing.quantity} {ing.unit} {ing.name}
+                                                {typeof ing === 'string'
+                                                    ? ing
+                                                    : [ing.quantity ?? ing.amount, ing.unit, ing.name]
+                                                        .filter(Boolean)
+                                                        .join(' ')}
                                             </li>
                                         ))}
                                     </ul>

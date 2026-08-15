@@ -6,12 +6,66 @@ dotenv.config();
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY
 });
+// The Interactions API is required for new Gemini API projects.
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
 
 if (!process.env.GEMINI_API_KEY) {
   console.error('WARNING: GEMINI_API_KEY is not set. AI features will not work.');
 }
 
+const generateText = async (prompt) => {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is not configured');
+  }
+
+  const response = await ai.interactions.create({
+    model: GEMINI_MODEL,
+    input: prompt
+  });
+
+  // This SDK exposes Interaction fields in API casing: `output_text`, not
+  // `outputText`. Fall back to text blocks for compatibility with SDK updates.
+  const text = (
+    response.output_text ||
+    response.outputs
+      ?.filter((output) => output.type === 'text')
+      .map((output) => output.text)
+      .join('')
+  )?.trim();
+
+  if (!text) {
+    const reason = response.status;
+    throw new Error(
+      reason
+        ? `Gemini returned no text (reason: ${reason})`
+        : 'Gemini returned an empty response'
+    );
+  }
+
+  return text;
+};
+
+const normalizeRecipe = (recipe) => ({
+  ...recipe,
+  name: recipe.name || recipe.recipeName || recipe.recipe_name,
+  cuisineType: recipe.cuisineType || recipe.cuisine_type || recipe.cuisine,
+  prepTime: recipe.prepTime ?? recipe.prep_time ?? recipe.prep_time_minutes ?? 0,
+  cookTime: recipe.cookTime ?? recipe.cook_time ?? recipe.cook_time_minutes ?? 0,
+  instructions: recipe.instructions || recipe.steps || [],
+  ingredients: (recipe.ingredients || []).map((ingredient) => {
+    if (typeof ingredient === 'string') {
+      return { name: ingredient, quantity: '', unit: '' };
+    }
+
+    return {
+      ...ingredient,
+      quantity: ingredient.quantity ?? ingredient.amount ?? '',
+      unit: ingredient.unit ?? '',
+      name: ingredient.name ?? ''
+    };
+  })
+});
 
 // 1. Generate Recipe
 export const generateRecipe = async ({
@@ -40,19 +94,25 @@ ${servings}
 Cooking time:
 ${cookingTime}
 
-Return only JSON.
+Return only JSON using these exact field names:
+{
+  "name": "recipe name",
+  "description": "short description",
+  "cuisineType": "cuisine",
+  "difficulty": "easy, medium, or hard",
+  "prepTime": 10,
+  "cookTime": 20,
+  "servings": 4,
+  "ingredients": [{ "quantity": "2", "unit": "cups", "name": "ingredient" }],
+  "instructions": ["step 1"],
+  "dietaryTags": []
+}
 `;
 
 
   try {
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt
-    });
-
-
-    let generatedText = response.text.trim();
+    let generatedText = await generateText(prompt);
 
 
     if (generatedText.startsWith("```json")) {
@@ -64,7 +124,7 @@ Return only JSON.
 
     const recipe = JSON.parse(generatedText);
 
-    return recipe;
+    return normalizeRecipe(recipe);
 
 
   } catch(error) {
@@ -94,13 +154,7 @@ Return JSON only.
 `;
 
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt
-  });
-
-
-  return response.text;
+  return generateText(prompt);
 };
 
 
@@ -118,13 +172,7 @@ Return useful tips.
 `;
 
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt
-  });
-
-
-  return response.text;
+  return generateText(prompt);
 };
 
 
